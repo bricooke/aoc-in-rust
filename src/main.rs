@@ -88,7 +88,7 @@ fn run_day(day: u8) {
     let input = input(day);
     let (part1, part2) = FUNCTIONS[(day - 1) as usize];
     println!("Day {day}, part 1: {}", part1(input.as_str()));
-    println!("Day {day}, part 1: {}", part2(input.as_str()));
+    println!("Day {day}, part 2: {}", part2(input.as_str()));
 }
 
 fn main() {

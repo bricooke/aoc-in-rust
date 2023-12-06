@@ -77,9 +77,6 @@ pub fn day2_part1(input: &str) -> String {
                 None
             }
         })
-        .inspect(|id| {
-            dbg!(id);
-        })
         .sum::<u32>()
         .to_string()
 }

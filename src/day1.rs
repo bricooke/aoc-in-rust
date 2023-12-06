@@ -46,12 +46,7 @@ pub fn day1_part1(input: &str) -> String {
         digit.parse::<u32>().unwrap()
     });
 
-    let _ = temp
-        .clone()
-        .inspect(|f| {
-            dbg!(f);
-        })
-        .collect::<Vec<_>>();
+    let _ = temp.clone().collect::<Vec<_>>();
 
     temp.sum::<u32>().to_string()
 }

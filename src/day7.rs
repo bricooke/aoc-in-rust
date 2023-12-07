@@ -7,27 +7,27 @@ struct Hand {
     cards: String,
 }
 
+fn build_hand(bid: u32, cards: String, part2: bool) -> Hand {
+    let cards = cards
+        .replace("A", "Z")
+        .replace("K", "Y")
+        .replace("Q", "X")
+        .replace("J", if part2 { "1" } else { "W" })
+        .replace("T", "V");
+    let t = type_from_cards(&cards, part2);
+    Hand {
+        bid,
+        r#type: t,
+        cards,
+    }
+}
 impl Eq for Hand {}
 
 impl Ord for Hand {
     fn cmp(&self, other: &Self) -> Ordering {
         // This could be tidied up, of course.
         if self.r#type == other.r#type {
-            let self_cards = self
-                .cards
-                .replace("A", "Z")
-                .replace("K", "Y")
-                .replace("Q", "X")
-                .replace("J", "1")
-                .replace("T", "V");
-            let other_cards = other
-                .cards
-                .replace("A", "Z")
-                .replace("K", "Y")
-                .replace("Q", "X")
-                .replace("J", "1")
-                .replace("T", "V");
-            self_cards.cmp(&other_cards)
+            self.cards.cmp(&other.cards)
         } else {
             self.r#type.cmp(&other.r#type)
         }
@@ -53,14 +53,18 @@ enum Type {
 
 use Type::*;
 
-fn type_from_cards(cards: String) -> Type {
+fn type_from_cards(cards: &String, part2: bool) -> Type {
     let cards = cards.chars().collect::<Vec<char>>();
     let counts = cards
         .iter()
         .map(|card| (*card, cards.iter().filter(|c| **c == *card).count()))
         .collect::<BTreeMap<char, usize>>();
 
-    let joker_count = counts.get(&'J').or(Some(&0)).unwrap();
+    let joker_count = if part2 {
+        counts.get(&'1').or(Some(&0)).unwrap()
+    } else {
+        &0
+    };
     match counts.keys().count() {
         1 => FiveOfAKind,
         2 => {
@@ -105,22 +109,18 @@ fn type_from_cards(cards: String) -> Type {
     }
 }
 
-fn hands(input: &str) -> Vec<Hand> {
+fn hands(input: &str, part2: bool) -> Vec<Hand> {
     input
         .lines()
         .map(|hand| {
             let line = hand.split(" ").collect::<Vec<&str>>();
-            Hand {
-                bid: line[1].parse::<u32>().unwrap(),
-                r#type: type_from_cards(line[0].to_string()),
-                cards: line[0].to_string(),
-            }
+            build_hand(line[1].parse::<u32>().unwrap(), line[0].to_string(), part2)
         })
         .collect::<Vec<_>>()
 }
 
 pub fn day7_part1(input: &str) -> String {
-    let mut hands = hands(input);
+    let mut hands = hands(input, false);
     hands.sort();
     hands
         .iter()
@@ -131,7 +131,7 @@ pub fn day7_part1(input: &str) -> String {
 }
 
 pub fn day7_part2(input: &str) -> String {
-    let mut hands = hands(input);
+    let mut hands = hands(input, true);
     hands.sort();
     hands
         .iter()
@@ -152,7 +152,6 @@ KTJJT 220
 QQQJA 483";
 
     #[test]
-    #[ignore] // ignored because I broke it for part 2 :(
     fn test_day7_part1() {
         assert_eq!("6440", day7_part1(INPUT));
     }
@@ -164,21 +163,22 @@ QQQJA 483";
 
     #[test]
     fn test_day7_part2_jokers() {
-        assert_eq!(FiveOfAKind, type_from_cards("JJJJK".to_string()));
-        assert_eq!(FiveOfAKind, type_from_cards("KKKJK".to_string()));
-        assert_eq!(FiveOfAKind, type_from_cards("JKKKJ".to_string()));
-        assert_eq!(OnePair, type_from_cards("2345J".to_string()));
-        assert_eq!(ThreeOfAKind, type_from_cards("JJKQT".to_string()));
-        assert_eq!(ThreeOfAKind, type_from_cards("JKKQT".to_string()));
-        assert_eq!(FourOfAKind, type_from_cards("JJKJT".to_string()));
-        assert_eq!(FourOfAKind, type_from_cards("JKKJT".to_string()));
-        assert_eq!(FourOfAKind, type_from_cards("JKQQJ".to_string()));
-        assert_eq!(ThreeOfAKind, type_from_cards("JKTQJ".to_string()));
-        assert_eq!(FullHouse, type_from_cards("JKKQQ".to_string()));
-        assert_eq!(FourOfAKind, type_from_cards("JKJQQ".to_string()));
-        assert_eq!(ThreeOfAKind, type_from_cards("JKKQT".to_string()));
-        assert_eq!(FiveOfAKind, type_from_cards("KKKJJ".to_string()));
-        assert_eq!(FourOfAKind, type_from_cards("KQKJJ".to_string()));
-        assert_eq!(FourOfAKind, type_from_cards("KQKKJ".to_string()));
+        // Note the 1s here are jokers since type_from_cards runs post character conversion
+        assert_eq!(FiveOfAKind, type_from_cards(&"1111K".to_string(), true));
+        assert_eq!(FiveOfAKind, type_from_cards(&"KKK1K".to_string(), true));
+        assert_eq!(FiveOfAKind, type_from_cards(&"1KKK1".to_string(), true));
+        assert_eq!(OnePair, type_from_cards(&"23451".to_string(), true));
+        assert_eq!(ThreeOfAKind, type_from_cards(&"11KQT".to_string(), true));
+        assert_eq!(ThreeOfAKind, type_from_cards(&"1KKQT".to_string(), true));
+        assert_eq!(FourOfAKind, type_from_cards(&"11K1T".to_string(), true));
+        assert_eq!(FourOfAKind, type_from_cards(&"1KK1T".to_string(), true));
+        assert_eq!(FourOfAKind, type_from_cards(&"1KQQ1".to_string(), true));
+        assert_eq!(ThreeOfAKind, type_from_cards(&"1KTQ1".to_string(), true));
+        assert_eq!(FullHouse, type_from_cards(&"1KKQQ".to_string(), true));
+        assert_eq!(FourOfAKind, type_from_cards(&"1K1QQ".to_string(), true));
+        assert_eq!(ThreeOfAKind, type_from_cards(&"1KKQT".to_string(), true));
+        assert_eq!(FiveOfAKind, type_from_cards(&"KKK11".to_string(), true));
+        assert_eq!(FourOfAKind, type_from_cards(&"KQK11".to_string(), true));
+        assert_eq!(FourOfAKind, type_from_cards(&"KQKK1".to_string(), true));
     }
 }

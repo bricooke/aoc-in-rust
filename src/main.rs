@@ -79,6 +79,10 @@ static FUNCTIONS: &'static [(fn(&str) -> String, fn(&str) -> String)] = &[
     (day25_part1, day25_part2),
 ];
 
+#[cfg(feature = "dhat-heap")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
+
 fn input(day: u8) -> String {
     read_to_string(format!("./input/day{}.txt", day))
         .expect(format!("Should have been able to read input/day{}.txt", day).as_str())
@@ -92,6 +96,9 @@ fn run_day(day: u8) {
 }
 
 fn main() {
+    #[cfg(feature = "dhat-heap")]
+    let _profiler = dhat::Profiler::new_heap();
+
     let args: Vec<String> = env::args().collect();
     let day_as_string = args.get(1);
     let day_to_run;

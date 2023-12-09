@@ -106,8 +106,11 @@ pub fn day8_part2(input: &str) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
+    use rstest::rstest;
 
-    const INPUT: &str = "RL
+    #[rstest]
+    #[case(
+        "RL
 
 AAA = (BBB, CCC)
 BBB = (DDD, EEE)
@@ -115,26 +118,24 @@ CCC = (ZZZ, GGG)
 DDD = (DDD, DDD)
 EEE = (EEE, EEE)
 GGG = (GGG, GGG)
-ZZZ = (ZZZ, ZZZ)";
-
-    #[test]
-    fn test_day8_part1() {
-        assert_eq!("2", day8_part1(INPUT));
-    }
-
-    #[test]
-    fn test_day8_part1_sample2() {
-        let i = "LLR
+ZZZ = (ZZZ, ZZZ)",
+        "2"
+    )]
+    #[case(
+        "LLR
 
 AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
-ZZZ = (ZZZ, ZZZ)";
-        assert_eq!("6", day8_part1(i));
+ZZZ = (ZZZ, ZZZ)",
+        "6"
+    )]
+    fn test_day8_part1(#[case] input: &str, #[case] expected: &str) {
+        assert_eq!(expected, day8_part1(input));
     }
 
-    #[test]
-    fn test_day8_part2() {
-        let p2i = "LR
+    #[rstest]
+    #[case(
+        "LR
 
 11A = (11B, XXX)
 11B = (XXX, 11Z)
@@ -143,7 +144,10 @@ ZZZ = (ZZZ, ZZZ)";
 22B = (22C, 22C)
 22C = (22Z, 22Z)
 22Z = (22B, 22B)
-XXX = (XXX, XXX)";
-        assert_eq!("6", day8_part2(p2i));
+XXX = (XXX, XXX)",
+        "6"
+    )]
+    fn test_day8_part2(#[case] input: &str, #[case] expected: &str) {
+        assert_eq!(expected, day8_part2(input));
     }
 }

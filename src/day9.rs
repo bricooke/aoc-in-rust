@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-fn find_next_value(line: Vec<i32>) -> i32 {
+fn find_next_value(line: &Vec<i32>, front: bool) -> i32 {
     if line.iter().all(|i| *i == 0) {
         return 0;
     }
@@ -11,45 +11,36 @@ fn find_next_value(line: Vec<i32>) -> i32 {
         .map(|(a, b)| b - a)
         .collect::<Vec<i32>>();
 
-    line.last().unwrap() + find_next_value(next_row)
+    if front {
+        line.first().unwrap() - find_next_value(&next_row, front)
+    } else {
+        line.last().unwrap() + find_next_value(&next_row, front)
+    }
 }
 
-fn find_prev_value(line: Vec<i32>) -> i32 {
-    if line.iter().all(|i| *i == 0) {
-        return 0;
-    }
-
-    let next_row = line
-        .iter()
-        .tuple_windows()
-        .map(|(a, b)| b - a)
-        .collect::<Vec<i32>>();
-
-    line.first().unwrap() - find_prev_value(next_row)
+fn parse(input: &str) -> Vec<Vec<i32>> {
+    input
+        .lines()
+        .map(|line| {
+            line.split(" ")
+                .map(|v| v.parse::<i32>().unwrap())
+                .collect::<Vec<i32>>()
+        })
+        .collect::<Vec<_>>()
 }
 
 pub fn day9_part1(input: &str) -> String {
-    let lines = input.lines().map(|line| {
-        line.split(" ")
-            .map(|v| v.parse::<i32>().unwrap())
-            .collect::<Vec<i32>>()
-    });
-
-    lines
-        .map(|line| find_next_value(line))
+    parse(input)
+        .iter()
+        .map(|line| find_next_value(line, false))
         .sum::<i32>()
         .to_string()
 }
 
 pub fn day9_part2(input: &str) -> String {
-    let lines = input.lines().map(|line| {
-        line.split(" ")
-            .map(|v| v.parse::<i32>().unwrap())
-            .collect::<Vec<i32>>()
-    });
-
-    lines
-        .map(|line| find_prev_value(line))
+    parse(input)
+        .iter()
+        .map(|line| find_next_value(line, true))
         .sum::<i32>()
         .to_string()
 }

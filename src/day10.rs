@@ -377,7 +377,7 @@ mod test {
     )]
     #[case(
         vec![(Position {x: 1,y: 0}, UpAndLeft), (Position{x: 0,y:0}, Start)],
-        true
+        false
     )]
     #[case(
         vec![(Position {x: 1,y: 0}, DownAndLeft), (Position{x: 0,y:0}, Start)],

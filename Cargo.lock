@@ -35,6 +35,7 @@ dependencies = [
  "nom",
  "num",
  "rstest",
+ "valence_math",
 ]
 
 [[package]]
@@ -201,6 +202,12 @@ name = "gimli"
 version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4271d37baee1b8c7e4b708028c57d816cf9d2434acb33a549475f78c181f6253"
+
+[[package]]
+name = "glam"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e4afd9ad95555081e109fe1d21f2a30c691b5f0919c67dfa690a2e1eb6bd51c"
 
 [[package]]
 name = "glob"
@@ -620,6 +627,15 @@ name = "unicode-ident"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
+
+[[package]]
+name = "valence_math"
+version = "0.2.0-alpha.1+mc.1.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db591a83da1167f0957db4794c9b5eaa30f9c0cd39a684d06b1d16c7bb30c130"
+dependencies = [
+ "glam",
+]
 
 [[package]]
 name = "windows-targets"

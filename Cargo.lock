@@ -31,6 +31,7 @@ name = "aoc-in-rust"
 version = "0.1.0"
 dependencies = [
  "dhat",
+ "glam 0.24.2",
  "itertools",
  "nom",
  "nom_locate",
@@ -215,6 +216,12 @@ name = "glam"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e4afd9ad95555081e109fe1d21f2a30c691b5f0919c67dfa690a2e1eb6bd51c"
+
+[[package]]
+name = "glam"
+version = "0.24.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5418c17512bdf42730f9032c74e1ae39afc408745ebb2acf72fbc4691c17945"
 
 [[package]]
 name = "glob"
@@ -652,7 +659,7 @@ version = "0.2.0-alpha.1+mc.1.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db591a83da1167f0957db4794c9b5eaa30f9c0cd39a684d06b1d16c7bb30c130"
 dependencies = [
- "glam",
+ "glam 0.23.0",
 ]
 
 [[package]]

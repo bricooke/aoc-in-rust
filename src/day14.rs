@@ -94,6 +94,7 @@ fn shift_rocks(max_position: IVec2, map: &mut HashMap<IVec2, Rock>, direction: D
 }
 
 // used when debugging.
+#[allow(dead_code)]
 fn rocks_as_str(max_position: IVec2, map: &HashMap<IVec2, Rock>) -> String {
     let mut result = "".to_string();
     for y in 0..=max_position.y {

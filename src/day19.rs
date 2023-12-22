@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::{collections::HashMap, ops::RangeInclusive};
 
 #[derive(Debug)]
 struct Part {
@@ -8,7 +8,7 @@ struct Part {
     s: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum XmasProperty {
     X,
     M,
@@ -16,7 +16,7 @@ enum XmasProperty {
     S,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum Operation {
     GreaterThan(XmasProperty, u32),
     LessThan(XmasProperty, u32),
@@ -39,9 +39,28 @@ impl Operation {
             },
         }
     }
+
+    fn to_range(&self, passing: bool) -> RangeInclusive<u32> {
+        match self {
+            GreaterThan(_, value) => {
+                if passing {
+                    value + 1..=4000
+                } else {
+                    1..=*value
+                }
+            }
+            LessThan(_, value) => {
+                if passing {
+                    1..=(value - 1)
+                } else {
+                    *value..=4000
+                }
+            }
+        }
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Rule<'a> {
     test: Option<Operation>,
     destination_workflow: &'a str,
@@ -187,6 +206,7 @@ mod parser {
 }
 
 use parser::all;
+use ranges::Ranges;
 
 pub fn day19_part1(input: &str) -> String {
     let (_, (workflows, parts)) = all(input).expect("parsing should succeed");
@@ -218,8 +238,137 @@ pub fn day19_part1(input: &str) -> String {
         .to_string()
 }
 
-pub fn day19_part2(_input: &str) -> String {
-    todo!();
+pub fn day19_part2(input: &str) -> String {
+    // each part component can be 1-4000
+    // there are 4 components to each part.
+    // there are 2.56e14 combinations of parts?
+    // the sample answer is 1.67...e14
+
+    // will a repeating pattern emerge? probably not.
+
+    // the workflows use ranges.
+    // walk each workflow and determine the ranges that lead to success?
+    let (_, (workflows, _)) = all(input).expect("should parse");
+    // we need a map of workflows so we can address them by their name
+    let workflows = workflows
+        .into_iter()
+        .map(|workflow| (workflow.name, workflow))
+        .collect::<HashMap<&str, Workflow>>();
+
+    // This is path finding? recursion?
+    let mut paths = AcceptablePaths {
+        current_path: vec![],
+        acceptable_paths: vec![],
+        workflows: &workflows,
+    };
+    paths.acceptable_paths("in");
+
+    // paths.acceptable_paths can now be iterated to build up ranges
+    // the product of the valid ranges for each XMAS in each path then summed is the answer.
+    paths
+        .acceptable_paths
+        .iter()
+        .map(|path| {
+            //
+            let mut acceptable_x = Ranges::from(1..=4000);
+            let mut acceptable_m = Ranges::from(1..=4000);
+            let mut acceptable_a = Ranges::from(1..=4000);
+            let mut acceptable_s = Ranges::from(1..=4000);
+
+            path.iter().for_each(|(rule, required)| match rule.test {
+                None => (),
+                Some(test) => {
+                    let property = match test {
+                        GreaterThan(p, _) => p,
+                        LessThan(p, _) => p,
+                    };
+                    let range = test.to_range(*required);
+                    match property {
+                        X => {
+                            let r = Ranges::from(range);
+                            acceptable_x &= r;
+                        }
+                        M => {
+                            acceptable_m &= Ranges::from(range);
+                        }
+                        A => {
+                            acceptable_a &= Ranges::from(range);
+                        }
+                        S => {
+                            acceptable_s &= Ranges::from(range);
+                        }
+                    };
+                }
+            });
+            let mut x_cnt = acceptable_x
+                .as_slice()
+                .iter()
+                .fold(0, |acc, range| acc + range.into_iter().count());
+            let mut m_cnt = acceptable_m
+                .as_slice()
+                .iter()
+                .fold(0, |acc, range| acc + range.into_iter().count());
+            let mut a_cnt = acceptable_a
+                .as_slice()
+                .iter()
+                .fold(0, |acc, range| acc + range.into_iter().count());
+            let mut s_cnt = acceptable_s
+                .as_slice()
+                .iter()
+                .fold(0, |acc, range| acc + range.into_iter().count());
+
+            if x_cnt == 0 {
+                x_cnt = 4000;
+            }
+            if m_cnt == 0 {
+                m_cnt = 4000;
+            }
+            if a_cnt == 0 {
+                a_cnt = 4000;
+            }
+            if s_cnt == 0 {
+                s_cnt = 4000;
+            }
+            x_cnt as u64 * m_cnt as u64 * a_cnt as u64 * s_cnt as u64
+        })
+        .sum::<u64>()
+        .to_string()
+}
+
+#[derive(Debug)]
+struct AcceptablePaths<'a> {
+    current_path: Vec<(Rule<'a>, bool)>,
+    acceptable_paths: Vec<Vec<(Rule<'a>, bool)>>,
+    workflows: &'a HashMap<&'a str, Workflow<'a>>,
+}
+
+impl AcceptablePaths<'_> {
+    fn acceptable_paths(&'_ mut self, workflow: &'_ str) {
+        if workflow == "A" {
+            let last_path = self.current_path.clone();
+            self.acceptable_paths.push(last_path);
+            return;
+        } else if workflow == "R" {
+            return;
+        } else {
+            // otherwise, recurse in to each branch of the next rule
+            let workflow = self.workflows.get(workflow).expect("unpossibruh");
+            workflow.rules.iter().enumerate().for_each(|(_, rule)| {
+                self.current_path.push((*rule, true));
+                self.acceptable_paths(rule.destination_workflow);
+                self.current_path.pop();
+
+                // push the false branch now and go to the next one
+                self.current_path.push((*rule, false));
+            });
+
+            // Pop each false that we pushed
+            for _ in 0..workflow.rules.len() {
+                self.current_path.pop();
+            }
+            return;
+        }
+    }
 }
 
 #[cfg(test)]
@@ -290,7 +439,28 @@ hdj{m>838:A,pv}
         assert_eq!(day19_part1(input), expected);
     }
 
-    #[test]
-    #[ignore]
-    fn test_day19_part2() {}
+    #[rstest]
+    #[case(
+        "px{a<2006:qkq,m>2090:A,rfg}
+pv{a>1716:R,A}
+lnx{m>1548:A,A}
+rfg{s<537:gd,x>2440:R,A}
+qs{s>3448:A,lnx}
+qkq{x<1416:A,crn}
+crn{x>2662:A,R}
+in{s<1351:px,qqz}
+qqz{s>2770:qs,m<1801:hdj,R}
+gd{a>3333:R,R}
+hdj{m>838:A,pv}
+
+{x=787,m=2655,a=1222,s=2876}
+{x=1679,m=44,a=2067,s=496}
+{x=2036,m=264,a=79,s=2244}
+{x=2461,m=1339,a=466,s=291}
+{x=2127,m=1623,a=2188,s=1013}",
+        "167409079868000"
+    )]
+    fn test_day19_part2(#[case] input: &str, #[case] expected: &str) {
+        assert_eq!(day19_part2(input), expected);
+    }
 }
